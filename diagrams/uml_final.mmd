@@ -1,0 +1,65 @@
+classDiagram
+    class Owner {
+        +name: str
+        +availability_minutes: int
+        +preferences: list[str]
+        +add_pet(pet: Pet)
+        +update_preferences(preferences: list[str])
+        +get_all_tasks() list[Task]
+        +get_pending_tasks() list[Task]
+    }
+
+    class Pet {
+        +name: str
+        +species: str
+        +age: int
+        +energy_level: str
+        +health_notes: list[str]
+        +tasks: list[Task]
+        +owner: Owner
+        +add_task(task: Task)
+        +get_task_count() int
+        +get_pending_tasks() list[Task]
+    }
+
+    class Task {
+        +title: str
+        +description: str
+        +duration_minutes: int
+        +priority: str
+        +time_window: str
+        +is_recurring: bool
+        +recurrence: str
+        +due_date: date
+        +is_completed: bool
+        +pet_name: str
+        +mark_complete() Task|None
+        +update_details(title: str|None, duration: int|None, priority: str|None, description: str|None, time_window: str|None, is_recurring: bool|None)
+    }
+
+    class Scheduler {
+        +owners: list[Owner]
+        +add_owner(owner: Owner)
+        +add_task(pet: Pet, task: Task)
+        +sort_by_time(tasks: list[Task]) list[Task]
+        +filter_tasks(tasks: list[Task], completed: bool|None, pet_name: str|None) list[Task]
+        +detect_conflicts(tasks: list[Task]) str|None
+        +get_all_tasks(owner: Owner|None) list[Task]
+        +get_pending_tasks(owner: Owner|None) list[Task]
+        +organize_tasks(owner: Owner|None) list[Task]
+        +generate_daily_plan(owner: Owner|None) list[Task]
+        +mark_task_complete(task: Task) Task|None
+        +explain_plan(owner: Owner|None) str
+        +display_plan(owner: Owner|None) str
+    }
+
+    class Schedule {
+        <<alias>>
+    }
+
+    Owner "1" *-- "1..*" Pet : owns
+    Pet "1" *-- "0..*" Task : needs
+    Scheduler "1" --> "0..*" Owner : manages
+    Scheduler "1" --> "0..*" Pet : assigns
+    Scheduler "1" --> "0..*" Task : schedules
+    Schedule --|> Scheduler : backward-compatible alias

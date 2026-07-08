@@ -42,17 +42,13 @@ pip install -r requirements.txt
 6. Connect your logic to the Streamlit UI in `app.py`.
 7. Refine UML so it matches what you actually built.
 
-## 🖥️ Sample Output
+## 🧩 Features
 
-Paste a sample of your app's CLI or Streamlit output here so a reader can see what a generated plan looks like:
-
-```
-# e.g.:
-# Daily plan for Biscuit (Golden Retriever):
-#   08:00 — Morning walk (30 min) [priority: high]
-#   09:00 — Feeding (10 min) [priority: high]
-#   ...
-```
+- Sorting by time: tasks are ordered chronologically using the scheduler's time-based logic.
+- Filtering by status and pet: pending tasks can be shown for a specific pet or across all pets.
+- Conflict warnings: overlapping tasks at the same time trigger a warning instead of breaking the app.
+- Daily recurrence: completing a daily recurring task creates a new task for the next day.
+- Streamlit workflow: users can add pets, create tasks, mark tasks complete, and generate a schedule from the UI.
 
 ## 🧪 Testing PawPal+
 The tests cover sorting correctness, recurrence logic, and conflict detection.
@@ -87,13 +83,22 @@ The scheduler now supports several rule-based features to help generate a practi
 | Recurring tasks | `Task.mark_complete()` | Creates the next daily or weekly task when a recurring task is completed. |
 
 ## 📸 Demo Walkthrough
+1. Open the Streamlit app and enter owner information. The app creates an owner profile and a scheduler instance for that owner.
+2. Add one or more pets, then create tasks for them with a title, duration, priority, recurrence, and due date.
+3. Use the task list to mark tasks complete. If a task is recurring, the scheduler creates the next occurrence automatically.
+4. Click Generate schedule to view pending tasks in chronological order. If two tasks share the same time, a warning appears so the user can adjust the plan.
+5. Review the task table and pending-task list to see how the scheduler sorts, filters, and warns about conflicts.
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+Example CLI output from running main.py:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+```text
+Warning: overlapping tasks at 08:00: Morning walk, Feed Luna (Bella, Luna)
+Today's Schedule
+--------------------
+- Feed Luna | 08:00 | 10 min | Priority: high | Pet: Luna
+- Evening grooming | 19:00 | 20 min | Priority: medium | Pet: Bella
 
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
+Bella's pending tasks
+--------------------
+- Evening grooming | 19:00 | 20 min
+```

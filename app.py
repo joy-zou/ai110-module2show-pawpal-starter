@@ -124,19 +124,38 @@ if st.button("Add task"):
         st.success(f"Added {task.title} for {selected_pet.name}.")
 
 if st.session_state.get("tasks"):
-    st.write("Current tasks:")
-    for pet, task in [(pet, task) for pet in owner.pets for task in pet.tasks]:
-        status = "Completed" if task.is_completed else "Pending"
-        st.write(
-            f"- {task.title} ({pet.name}) | {task.priority} | {task.duration_minutes} min | {task.recurrence or 'once'} | due {task.due_date or 'n/a'} | {status}"
-        )
-        if not task.is_completed:
+    st.subheader("Current tasks")
+    task_rows = [
+        {
+            "Pet": pet.name,
+            "Task": task.title,
+            "Priority": task.priority,
+            "Duration (min)": task.duration_minutes,
+            "Recurrence": task.recurrence or "once",
+            "Due": task.due_date.strftime("%Y-%m-%d") if task.due_date else "n/a",
+            "Status": "Completed" if task.is_completed else "Pending",
+        }
+        for pet in owner.pets
+        for task in pet.tasks
+    ]
+    st.table(task_rows)
+
+    pending_tasks = scheduler.filter_tasks(scheduler.get_all_tasks(owner), completed=False)
+    if pending_tasks:
+        st.subheader("Pending tasks")
+        sorted_pending = scheduler.sort_by_time(pending_tasks)
+        for task in sorted_pending:
+            st.write(
+                f"- {task.title} ({task.pet_name}) | {task.priority} | {task.duration_minutes} min | {task.time_window} | due {task.due_date or 'n/a'}"
+            )
             if st.button("Mark complete", key=f"complete_{id(task)}"):
                 next_task = task.mark_complete()
                 if next_task is not None:
-                    pet.add_task(next_task)
+                    owner.pets[0].add_task(next_task) if owner.pets else None
                 sync_task_state(owner)
                 st.rerun()
+    else:
+        st.info("No pending tasks.")
 else:
     st.info("No tasks yet. Add one above.")
 
@@ -153,12 +172,25 @@ if st.button("Generate schedule"):
                 scheduler.add_task(pet, task)
 
     pending_tasks = scheduler.filter_tasks(scheduler.get_all_tasks(owner), completed=False)
+    conflict_warning = scheduler.detect_conflicts(pending_tasks)
     plan = scheduler.sort_by_time(pending_tasks)
+
+    if conflict_warning:
+        st.warning(conflict_warning)
+
     st.success("Schedule generated")
     if plan:
-        for task in plan:
-            st.write(
-                f"- {task.title} ({task.priority}, {task.duration_minutes} min) | {task.time_window} | due {task.due_date or 'n/a'}"
-            )
+        plan_rows = [
+            {
+                "Task": task.title,
+                "Pet": task.pet_name or "unknown",
+                "Priority": task.priority,
+                "Time": task.time_window,
+                "Duration (min)": task.duration_minutes,
+                "Due": task.due_date.strftime("%Y-%m-%d") if task.due_date else "n/a",
+            }
+            for task in plan
+        ]
+        st.table(plan_rows)
     else:
         st.info("No tasks available yet.")
