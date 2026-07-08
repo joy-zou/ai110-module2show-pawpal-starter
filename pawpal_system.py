@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 from typing import List
 
 
@@ -13,11 +13,36 @@ class Task:
     priority: str = "medium"
     time_window: str = "anytime"
     is_recurring: bool = False
+    recurrence: str | None = None
+    due_date: date | None = None
     is_completed: bool = False
+    pet_name: str | None = None
 
-    def mark_complete(self) -> None:
-        """Mark this task as completed."""
+    def mark_complete(self) -> "Task | None":
+        """Mark this task as completed and create the next occurrence for recurring tasks."""
         self.is_completed = True
+        if not self.is_recurring or not self.recurrence:
+            return None
+
+        if self.recurrence.lower() == "daily":
+            next_due_date = (self.due_date or date.today()) + timedelta(days=1)
+        elif self.recurrence.lower() == "weekly":
+            next_due_date = (self.due_date or date.today()) + timedelta(weeks=1)
+        else:
+            return None
+
+        return Task(
+            title=self.title,
+            description=self.description,
+            duration_minutes=self.duration_minutes,
+            priority=self.priority,
+            time_window=self.time_window,
+            is_recurring=True,
+            recurrence=self.recurrence,
+            due_date=next_due_date,
+            is_completed=False,
+            pet_name=self.pet_name,
+        )
 
     def update_details(
         self,
@@ -108,6 +133,51 @@ class Scheduler:
     def add_task(self, pet: Pet, task: Task) -> None:
         """Assign a task to a pet through the scheduler."""
         pet.add_task(task)
+        if not task.pet_name:
+            task.pet_name = pet.name
+
+    def sort_by_time(self, tasks: List[Task]) -> List[Task]:
+        """Return tasks ordered by their time value, using the time window as a fallback."""
+        return sorted(
+            tasks,
+            key=lambda task: (
+                getattr(task, "time", None) is None,
+                str(getattr(task, "time", getattr(task, "time_window", ""))).lower(),
+            ),
+        )
+
+    def filter_tasks(
+        self,
+        tasks: List[Task],
+        *,
+        completed: bool | None = None,
+        pet_name: str | None = None,
+    ) -> List[Task]:
+        """Return tasks that match the requested completion state and optional pet name."""
+        filtered_tasks: List[Task] = []
+        for task in tasks:
+            if completed is not None and task.is_completed != completed:
+                continue
+            if pet_name is not None:
+                task_pet_name = getattr(task, "pet_name", None)
+                if task_pet_name is None or task_pet_name.lower() != pet_name.lower():
+                    continue
+            filtered_tasks.append(task)
+        return filtered_tasks
+
+    def detect_conflicts(self, tasks: List[Task]) -> str | None:
+        """Return a warning message when multiple tasks overlap at the same time window."""
+        grouped: dict[str, List[Task]] = {}
+        for task in tasks:
+            time_value = str(getattr(task, "time", getattr(task, "time_window", ""))).strip().lower()
+            grouped.setdefault(time_value, []).append(task)
+
+        for time_value, time_tasks in grouped.items():
+            if len(time_tasks) > 1:
+                task_names = ", ".join(task.title for task in time_tasks)
+                pet_names = ", ".join(task.pet_name or "unknown" for task in time_tasks)
+                return f"Warning: overlapping tasks at {time_value}: {task_names} ({pet_names})"
+        return None
 
     def get_all_tasks(self, owner: Owner | None = None) -> List[Task]:
         """Return all known tasks for a specific owner or all registered owners."""
@@ -140,9 +210,9 @@ class Scheduler:
         """Create a simple daily plan from the current pending tasks."""
         return self.organize_tasks(owner)
 
-    def mark_task_complete(self, task: Task) -> None:
-        """Mark a specific task as complete."""
-        task.mark_complete()
+    def mark_task_complete(self, task: Task) -> Task | None:
+        """Mark a specific task as complete and return the next recurring task if created."""
+        return task.mark_complete()
 
     def explain_plan(self, owner: Owner | None = None) -> str:
         """Return a text summary of the current planned tasks."""

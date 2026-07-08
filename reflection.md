@@ -25,10 +25,14 @@ No, my design did not really change during implementation.
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
 - How did you decide which constraints mattered most?
 
+The scheduler considers constraints such as priority and time as most important. I decided these mattered most, more than preferences, because time window determines when tasks can appear and priority ensures important tasks are handled first.
+
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
+
+One tradeoff the scheduler makes is that it does not account for owner availability. This tradeoff is currently reasonable because in the app description, the owner does not ask for 
 
 ---
 
