@@ -7,6 +7,8 @@
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+I had the classes of owner, pet, tasks, and schedule. Owner and pet include information about each that the user can edit, tasks allow tasks to be created, and schedule uses the tasks to create a plan with constraints considered.
+
 **b. Design changes**
 
 - Did your design change during implementation?
