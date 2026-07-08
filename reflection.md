@@ -14,6 +14,8 @@ I had the classes of owner, pet, tasks, and schedule. Owner and pet include info
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
 
+No, my design did not really change during implementation.
+
 ---
 
 ## 2. Scheduling Logic and Tradeoffs
