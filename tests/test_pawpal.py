@@ -1,5 +1,5 @@
 import sys
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -28,21 +28,18 @@ def test_adding_task_increases_pet_task_count():
     assert pet.get_task_count() == 1
 
 
-def test_sort_by_time_orders_tasks_by_time_attribute():
+def test_sorting_correctness_returns_tasks_in_chronological_order():
     scheduler = Scheduler()
-    early = Task(title="Early", duration_minutes=10, priority="high")
-    early.time = "09:00"
-    middle = Task(title="Middle", duration_minutes=10, priority="high")
-    middle.time = "12:00"
-    late = Task(title="Late", duration_minutes=10, priority="high")
-    late.time = "19:00"
+    late = Task(title="Late", duration_minutes=10, priority="high", time_window="19:00")
+    early = Task(title="Early", duration_minutes=10, priority="high", time_window="09:00")
+    middle = Task(title="Middle", duration_minutes=10, priority="high", time_window="12:00")
 
     ordered = scheduler.sort_by_time([late, early, middle])
 
     assert [task.title for task in ordered] == ["Early", "Middle", "Late"]
 
 
-def test_mark_complete_creates_next_daily_task():
+def test_recurrence_logic_creates_next_day_task_when_daily_task_completed():
     task = Task(
         title="Water plants",
         duration_minutes=5,
@@ -93,7 +90,7 @@ def test_filter_tasks_by_completion_status_and_pet_name():
     assert filtered == [pending_bella]
 
 
-def test_detect_conflicts_returns_warning_for_same_time():
+def test_conflict_detection_flags_duplicate_times():
     scheduler = Scheduler()
     bella = Pet(name="Bella", species="dog")
     luna = Pet(name="Luna", species="cat")

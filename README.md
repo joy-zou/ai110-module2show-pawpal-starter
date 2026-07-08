@@ -55,10 +55,11 @@ Paste a sample of your app's CLI or Streamlit output here so a reader can see wh
 ```
 
 ## 🧪 Testing PawPal+
+The tests cover sorting correctness, recurrence logic, and conflict detection.
 
 ```bash
 # Run the full test suite:
-pytest
+python -m pytest
 
 # Run with coverage:
 pytest --cov
@@ -67,8 +68,12 @@ pytest --cov
 Sample test output:
 
 ```
-# Paste your pytest output here
+[100%]
+
+================================ 7 passed in 0.06s =================================
 ```
+
+Confidence Level: 5 stars
 
 ## 📐 Smarter Scheduling
 
